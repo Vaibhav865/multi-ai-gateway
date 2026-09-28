@@ -1,0 +1,12 @@
+.metadata/
+RemoteSystemsTempFiles/
+Servers/
+target/
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+.env
+*.log

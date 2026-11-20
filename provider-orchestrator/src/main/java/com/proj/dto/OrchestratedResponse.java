@@ -11,5 +11,10 @@ public class OrchestratedResponse {
 	
 	private String reply;
     private String servedBy;
+    private long latencyMs;
     
+    public OrchestratedResponse(String reply, String servedBy) {
+        this.reply = reply;
+        this.servedBy = servedBy;
+    }
 }

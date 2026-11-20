@@ -16,6 +16,8 @@ public class JwtUtil {
     private final long EXPIRATION_MS = 1000 * 60 * 60 * 24; // 24 hours
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
+        System.out.println("AUTH-SERVICE JWT SECRET: [" + secret + "]");
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

@@ -3,24 +3,43 @@ package com.proj.service;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import com.proj.dto.OrchestratedResponse;
 
-//import jakarta.inject.Qualifier;
-
 @Service
 public class OrchestratorService {
 
-	private RestClient restClient;
+    private final RestClient restClient;
+    private final PromptCacheService cacheService;
 
-	public OrchestratorService(@Qualifier("loadBalancedRestClientBuilder") RestClient.Builder loadBalancedRestClientBuilder) {
-	    this.restClient = loadBalancedRestClientBuilder.build();
-	}
+    public OrchestratorService(
+            @Qualifier("loadBalancedRestClientBuilder") RestClient.Builder loadBalancedRestClientBuilder,
+            PromptCacheService cacheService) {
+        this.restClient = loadBalancedRestClientBuilder.build();
+        this.cacheService = cacheService;
+    }
 
     public OrchestratedResponse route(String prompt, String authHeader) {
+        // 1. Check the cache first
+        String cached = cacheService.get(prompt);
+        if (cached != null) {
+            return new OrchestratedResponse(cached, "cache");
+        }
+
+        // 2. Cache miss: go to the AI providers
+        OrchestratedResponse result = routeToProviders(prompt, authHeader);
+
+        // 3. Store successful replies only (never cache the "all providers failed" message)
+        if (!"none".equals(result.getServedBy())) {
+            cacheService.put(prompt, result.getReply());
+        }
+
+        return result;
+    }
+
+    private OrchestratedResponse routeToProviders(String prompt, String authHeader) {
         // Primary: Groq (fastest)
         try {
             String reply = callAiProvider(prompt, "groq", authHeader);

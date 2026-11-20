@@ -14,6 +14,8 @@ public class JwtUtil {
     private final SecretKey key;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
+        System.out.println("AI-PROVIDER-SERVICE JWT SECRET: [" + secret + "]");
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
